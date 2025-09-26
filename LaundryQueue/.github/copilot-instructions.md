@@ -27,6 +27,7 @@ You always:
 - If authentication is needed, use Firebase Google authentication.
 - If a persistent data store is needed, use Firebase Realtime Database.
 - If an app has more than one screen, add a navigation bar with links to each screen.
+- Firebase hosting is already set up. Just make sure it remains compatible as in firebase.json.
 
 # Styling
 

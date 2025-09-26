@@ -44,40 +44,46 @@ Simple one-screen layout showing all machines with clear color coding and timers
 
 # Coding notes
 
-- Frontend:
-  - Single-page web UI; show machine status, remaining time, and action buttons on one screen.
-  - Use `setInterval()` (or `requestAnimationFrame` for UI smoothing) to update local countdowns; rely on server timestamps for authoritative finish times to avoid client clock drift.
-  - Use Service Worker / Push API (or Firebase Cloud Messaging) for notifications on mobile/web.
-  - Real-time sync via WebSockets (Socket.IO) or polling if sockets unavailable.
-- Backend:
-  - Simple REST + WebSocket backend storing machine states: `{ machineId, state, ownerId, startTime, duration, claimed }`.
-  - Use atomic updates / optimistic locking when claiming or finishing a machine to avoid races.
-  - Send push notifications via a push provider when timers complete.
-- Sound/alerts:
-  - Play short alert using the Web Audio API for local audible alerts (mockable during tests).
-- Testability:
-  - Abstract push/notification service behind an interface so it can be replaced by a `MockPushService` in tests.
-  - Keep timestamps in ISO UTC; server is source of truth for finish times.
+## Frontend
+- **Single-page UI**:
+  - Show machine grid/list (W1, W2, etc.).
+  - Each machine displays:
+    - **Green** if available.  
+    - **Red with countdown** if in use.  
+    - **Blinking Red** if timer has expired but user hasn’t marked it done.  
+
+- **Check-in flow**:
+  - Tap a machine → enter expected cycle duration → machine switches to Red and countdown starts.  
+
+- **Local timers**:
+  - Use `setInterval()` to update countdowns every second.  
+  - When timer hits zero, machine switches to **Blinking Red** until user marks it as empty.  
+
+- **Manual update controls**:
+  - “Mark as Empty” button turns machine back to Green.  
+
+- **Data persistence (optional)**:
+  - Store machine state in `localStorage` so it survives page reloads.  
+
+## Backend (Optional / Minimal)
+- Could skip backend entirely for MVP → use local state only. 
+- If backend included:
+  - Store machine states in a simple JSON DB or SQLite:  
+    ```json
+    { "machineId": "W1", "state": "in-use", "owner": "user123", "startTime": "2025-09-26T12:00:00Z", "duration": 40 }
+    ```
+  - Provide REST endpoints:
+    - `GET /machines` → list machine states.  
+    - `POST /machines/:id/start` → claim machine with duration.  
+    - `POST /machines/:id/finish` → mark machine empty.  
 
 # Testing notes
-
-Unit & integration tests should cover:
-
-- Check-in flow: starting a machine updates state, sets owner, and computes finish time correctly.
-- Timer expiration: when server finish time passes, notification is queued/sent and machine switches to "finished" state.
-- Reminder flow: sending a reminder creates a notification delivered to the owner; ensure throttling to prevent spam.
-- UI state colors: green/red/claimed states display correctly in various edge cases.
-- Concurrency: two users attempting to claim the same machine — ensure only one succeeds (atomicity).
-- Edge cases:
-  - User edits duration mid-cycle.
-  - User loses connection and reconnects — state resync works.
-  - Time skew between client and server — server-driven finish times used.
-- Mocks & test helpers:
-  - `MockPushService` / `MockNotificationAPI` to assert notifications without external services.
-  - `MockClock` or frozen `Date` to simulate time passage and trigger timer-completion logic deterministically.
-- End-to-end:
-  - Simulate multiple users on different clients to verify real-time updates and reminder delivery.
-
+- Verify that starting a machine sets countdown correctly.  
+- Verify that timer decrements and flips to “finished” state at zero.  
+- Verify that “Mark as Empty” resets machine to green.  
+- Test edge cases:  
+  - Two users trying to start the same machine.  
+  - Refreshing the page (state persists via `localStorage`).  
 # Recording-keeping
 
 - Log events (console/backend) with `{ timestamp, machineId, action, userId, duration, result }` for auditing and optional usage analytics (e.g., average occupancy, frequent violators).
