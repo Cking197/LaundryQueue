@@ -7,13 +7,14 @@ export type Machine = {
   label: string;
   state: MachineState;
   ownerId?: string | null;
+  ownerName?: string | null;
   startTime?: string | null; // ISO
   durationMin?: number | null;
 };
 
 type QueueContextValue = {
   machines: Machine[];
-  startMachine: (id: string, userId: string, durationMin: number) => void;
+  startMachine: (id: string, userId: string, durationMin: number, ownerName?: string) => void;
   finishMachine: (id: string) => void;
   sendReminder: (id: string, fromUserId: string) => boolean;
 };
@@ -49,11 +50,15 @@ export const QueueProvider = ({ children }: any) => {
     return () => clearInterval(t);
   }, []);
 
-  const startMachine = (id: string, userId: string, durationMin: number) => {
+  const startMachine = (id: string, userId: string, durationMin: number, ownerName?: string) => {
     setMachines((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, state: 'in-use', ownerId: userId, startTime: new Date().toISOString(), durationMin } : m)),
+      prev.map((m) =>
+        m.id === id
+          ? { ...m, state: 'in-use', ownerId: userId, ownerName: ownerName || null, startTime: new Date().toISOString(), durationMin }
+          : m,
+      ),
     );
-    console.log({ timestamp: new Date().toISOString(), machineId: id, action: 'start', userId, duration: durationMin });
+    console.log({ timestamp: new Date().toISOString(), machineId: id, action: 'start', userId, ownerName, duration: durationMin });
   };
 
   const finishMachine = (id: string) => {

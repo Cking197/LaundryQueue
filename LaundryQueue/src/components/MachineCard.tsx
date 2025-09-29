@@ -1,6 +1,7 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import type { Machine } from '../context/QueueContext';
 import { QueueContext } from '../context/QueueContext';
+import { AuthContext } from '../context/AuthContext';
 
 const formatRemaining = (finishTs?: string | null) => {
   if (!finishTs) return null;
@@ -33,9 +34,13 @@ export const MachineCard = ({ machine }: { machine: Machine }) => {
 
   const remaining = formatRemaining(finishTs);
 
+  const auth = useContext(AuthContext);
+
   const onStart = () => {
     const duration = Number(prompt('Duration minutes', String(machine.durationMin || 35))) || 35;
-    startMachine(machine.id, 'demo-user', duration);
+    const userId = auth?.currentUser.id || 'demo-user';
+    const ownerName = auth?.currentUser.username || 'You';
+    startMachine(machine.id, userId, duration, ownerName);
   };
 
   const onFinish = () => {
@@ -70,6 +75,17 @@ export const MachineCard = ({ machine }: { machine: Machine }) => {
         )}
         {machine.state === 'finished' && (
           <button onClick={onFinish} className="px-3 py-1 bg-emerald-500 text-white rounded">Mark picked up</button>
+        )}
+      </div>
+      <div className="mt-2 text-xs text-slate-500">
+        {machine.ownerId ? (
+          machine.ownerId === auth?.currentUser.id ? (
+            <span>Owner: {machine.ownerName}</span>
+          ) : (
+            <span>Owner: Someone</span>
+          )
+        ) : (
+          <span>Owner: —</span>
         )}
       </div>
     </div>

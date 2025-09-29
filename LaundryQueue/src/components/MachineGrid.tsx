@@ -7,7 +7,7 @@ export const MachineGrid = () => {
   if (!ctx) return null;
   const { machines } = ctx;
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="machine-grid-2x3">
       {machines.map((m) => (
         <MachineCard key={m.id} machine={m} />
       ))}

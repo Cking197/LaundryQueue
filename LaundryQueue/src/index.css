@@ -52,3 +52,11 @@ html, body, #root {
 .blink-red {
   animation: blink-red 1.2s infinite;
 }
+
+/* Fixed 2 rows x 3 columns grid for machine layout */
+.machine-grid-2x3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: 1rem;
+}
