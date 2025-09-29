@@ -48,7 +48,8 @@ export const MachineCard = ({ machine }: { machine: Machine }) => {
   };
 
   const onReminder = () => {
-    const ok = sendReminder(machine.id, 'demo-user');
+    const fromId = auth?.currentUser.id || 'demo-user';
+    const ok = sendReminder(machine.id, fromId);
     alert(ok ? 'Reminder sent' : 'Reminder throttled');
   };
 
@@ -70,7 +71,7 @@ export const MachineCard = ({ machine }: { machine: Machine }) => {
         {machine.state === 'available' && (
           <button onClick={onStart} className="px-3 py-1 bg-emerald-600 text-white rounded">Start</button>
         )}
-        {machine.state !== 'available' && (
+        {machine.state !== 'available' && machine.ownerId !== auth?.currentUser.id && (
           <button onClick={onReminder} className="px-3 py-1 bg-slate-200 rounded">Send reminder</button>
         )}
         {machine.state === 'finished' && (

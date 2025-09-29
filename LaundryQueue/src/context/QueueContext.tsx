@@ -17,6 +17,8 @@ type QueueContextValue = {
   startMachine: (id: string, userId: string, durationMin: number, ownerName?: string) => void;
   finishMachine: (id: string) => void;
   sendReminder: (id: string, fromUserId: string) => boolean;
+  getNotifications: (userId: string) => Array<{ id: string; message: string; ts: number }>;
+  clearNotifications: (userId: string) => void;
 };
 
 export const QueueContext = createContext<QueueContextValue | null>(null);
@@ -69,6 +71,17 @@ export const QueueProvider = ({ children }: any) => {
   // Simple reminder throttle per machine (in-memory)
   const reminderTracker: Record<string, { lastSent?: number; count?: number }> = {};
 
+  // Simple in-memory notifications keyed by userId
+  const notifications: Record<string, Array<{ id: string; message: string; ts: number }>> = {};
+
+  const getNotifications = (userId: string) => {
+    return notifications[userId] || [];
+  };
+
+  const clearNotifications = (userId: string) => {
+    notifications[userId] = [];
+  };
+
   const sendReminder = (id: string, fromUserId: string) => {
     const m = machines.find((x) => x.id === id);
     if (!m || !m.ownerId) return false;
@@ -81,10 +94,17 @@ export const QueueProvider = ({ children }: any) => {
     rec.count = (rec.count || 0) + 1;
     reminderTracker[id] = rec;
     console.log({ timestamp: new Date().toISOString(), machineId: id, action: 'reminder', from: fromUserId, to: m.ownerId });
+
+    // push a simple notification for the owner
+    const note = { id: `${id}-${Date.now()}`, message: `Reminder: please pick up ${m.label}`, ts: Date.now() };
+    if (!notifications[m.ownerId!]) notifications[m.ownerId!] = [];
+    notifications[m.ownerId!].push(note);
     return true;
   };
 
   return (
-    <QueueContext.Provider value={{ machines, startMachine, finishMachine, sendReminder }}>{children}</QueueContext.Provider>
+    <QueueContext.Provider value={{ machines, startMachine, finishMachine, sendReminder, getNotifications, clearNotifications }}>
+      {children}
+    </QueueContext.Provider>
   );
 };
