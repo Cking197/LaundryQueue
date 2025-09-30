@@ -35,9 +35,11 @@ export const MachineCard = ({ machine }: { machine: Machine }) => {
   const remaining = formatRemaining(finishTs);
 
   const auth = useContext(AuthContext);
+  const [selectedDuration, setSelectedDuration] = useState<number>(machine.durationMin || 0.1);
+  const DURATIONS = [0.1, 35, 45, 60];
 
   const onStart = () => {
-    const duration = Number(prompt('Duration minutes', String(machine.durationMin || 35))) || 35;
+    const duration = Number(selectedDuration || 0.1);
     const userId = auth?.currentUser.id || 'demo-user';
     const ownerName = auth?.currentUser.username || 'You';
     startMachine(machine.id, userId, duration, ownerName);
@@ -69,7 +71,14 @@ export const MachineCard = ({ machine }: { machine: Machine }) => {
       </div>
       <div className="mt-4 flex gap-2">
         {machine.state === 'available' && (
-          <button onClick={onStart} className="px-3 py-1 bg-emerald-600 text-white rounded">Start</button>
+          <>
+            <select aria-label="Duration" value={selectedDuration} onChange={(e) => setSelectedDuration(Number(e.target.value))}>
+              {DURATIONS.map((d) => (
+                <option key={d} value={d}>{d} min</option>
+              ))}
+            </select>
+            <button onClick={onStart} className="px-3 py-1 bg-emerald-600 text-white rounded">Start</button>
+          </>
         )}
         {machine.state !== 'available' && machine.ownerId !== auth?.currentUser.id && (
           <button onClick={onReminder} className="px-3 py-1 bg-slate-200 rounded">Send reminder</button>
