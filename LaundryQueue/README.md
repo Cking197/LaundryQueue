@@ -1,3 +1,31 @@
+# Laundry Queue — Demo
+
+This is a lightweight local demo implementation of the Laundry Queue UI described in `docs/app-vision.md`.
+
+What's included
+
+- A minimal React + TypeScript SPA under `src/` that renders a machine grid and supports check-in, reminders, and pick-up actions. State is kept in an in-memory `QueueContext` for demonstration.
+- `MockPushService` that logs notifications instead of sending real push messages.
+
+Run locally
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Start dev server:
+
+```bash
+npm run dev
+```
+
+Notes and next steps
+
+- The app uses an in-memory store; add a backend (REST + WebSocket) or Firebase Realtime DB for persistence and real-time sync.
+- Replace `MockPushService` with Firebase Cloud Messaging or Push API for real notifications.
+- Add authentication (Firebase Google Auth) to identify users instead of the `demo-user` placeholder.
 # React + TypeScript + Vite + Vitest
 
 A starter template for building React 19+ apps in TypeScript with Vite and TailwindCSS 4. Includes Vitest for unit testing and
