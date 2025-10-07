@@ -15,7 +15,7 @@ const formatRemaining = (finishTs?: string | null) => {
 export const MachineCard = ({ machine }: { machine: Machine }) => {
   const ctx = useContext(QueueContext);
   if (!ctx) return null;
-  const { startMachine, finishMachine, sendReminder } = ctx;
+  const { startMachine, finishMachine, sendReminder, forceFinishMachine } = ctx;
   const [nowTick, setNowTick] = useState(0);
   // nowTick forces re-render every second; underscore usage prevents "unused" lint in some configs
   void nowTick;
@@ -35,8 +35,8 @@ export const MachineCard = ({ machine }: { machine: Machine }) => {
   const remaining = formatRemaining(finishTs);
 
   const auth = useContext(AuthContext);
-  const [selectedDuration, setSelectedDuration] = useState<number>(machine.durationMin || 0.1);
-  const DURATIONS = [0.1, 35, 45, 60];
+  const [selectedDuration, setSelectedDuration] = useState<number>(machine.durationMin || 30);
+  const DURATIONS = [2, 30, 45, 60];
 
   const onStart = () => {
     const duration = Number(selectedDuration || 0.1);
@@ -82,6 +82,9 @@ export const MachineCard = ({ machine }: { machine: Machine }) => {
         )}
         {machine.state !== 'available' && machine.ownerId !== auth?.currentUser.id && (
           <button onClick={onReminder} className="px-3 py-1 bg-slate-200 rounded">Send reminder</button>
+        )}
+        {machine.state === 'in-use' && machine.ownerId === auth?.currentUser.id && (
+          <button onClick={() => forceFinishMachine(machine.id)} className="px-3 py-1 bg-amber-500 text-white rounded">Reset timer</button>
         )}
         {machine.state === 'finished' && (
           <button onClick={onFinish} className="px-3 py-1 bg-emerald-500 text-white rounded">Mark picked up</button>
