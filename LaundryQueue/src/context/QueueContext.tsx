@@ -19,6 +19,7 @@ type QueueContextValue = {
   sendReminder: (id: string, fromUserId: string) => boolean;
   getNotifications: (userId: string) => Array<{ id: string; message: string; ts: number }>;
   clearNotifications: (userId: string) => void;
+  forceFinishMachine: (id: string) => void;
 };
 
 export const QueueContext = createContext<QueueContextValue | null>(null);
@@ -68,6 +69,11 @@ export const QueueProvider = ({ children }: any) => {
     console.log({ timestamp: new Date().toISOString(), machineId: id, action: 'picked_up' });
   };
 
+  const forceFinishMachine = (id: string) => {
+    setMachines((prev) => prev.map((m) => (m.id === id ? { ...m, state: 'finished' as MachineState } : m)));
+    console.log({ timestamp: new Date().toISOString(), machineId: id, action: 'force_finished' });
+  };
+
   // Simple reminder throttle per machine (in-memory)
   const reminderTracker: Record<string, { lastSent?: number; count?: number }> = {};
 
@@ -103,7 +109,7 @@ export const QueueProvider = ({ children }: any) => {
   };
 
   return (
-    <QueueContext.Provider value={{ machines, startMachine, finishMachine, sendReminder, getNotifications, clearNotifications }}>
+    <QueueContext.Provider value={{ machines, startMachine, finishMachine, sendReminder, getNotifications, clearNotifications, forceFinishMachine }}>
       {children}
     </QueueContext.Provider>
   );
